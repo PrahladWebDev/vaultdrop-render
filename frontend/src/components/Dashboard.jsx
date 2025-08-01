@@ -24,7 +24,7 @@ function Dashboard() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const res = await axios.get('https://vaultdrop-render.onrender.com/api/analytics/dashboard', {
+        const res = await axios.get('/api/analytics/dashboard', {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         });
         setStats(res.data.stats);
@@ -166,10 +166,10 @@ function Dashboard() {
                     <p className="text-sm text-gray-600 mt-1">
                       Shareable Link:{' '}
                       <a
-                        href={`http://localhost:5173/download/${file._id}`}
+                        href={`https://vaultdrop-render.onrender.com/download/${file._id}`}
                         className="text-blue-600 hover:underline break-all"
                       >
-                        http://localhost:5173/download/{file._id}
+                        https://vaultdrop-render.onrender.com/download/{file._id}
                       </a>
                     </p>
                     <button

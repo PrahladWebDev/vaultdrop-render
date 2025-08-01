@@ -35,7 +35,7 @@ function UploadFile() {
     formData.append('description', description);
 
     try {
-      const res = await axios.post('https://vaultdrop-render.onrender.com/api/files/upload', formData, {
+      const res = await axios.post('/api/files/upload', formData, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setShareableLink(res.data.shareableLink);

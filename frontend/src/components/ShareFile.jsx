@@ -20,7 +20,7 @@ function ShareFile() {
 
     try {
       const res = await axios.post(
-        `https://vaultdrop-render.onrender.com/api/files/share/${fileId}`,
+        `/api/files/share/${fileId}`,
         { email },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
