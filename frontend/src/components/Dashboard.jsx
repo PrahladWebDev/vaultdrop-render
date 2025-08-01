@@ -24,7 +24,7 @@ function Dashboard() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const res = await axios.get('http://localhost:5000/api/analytics/dashboard', {
+        const res = await axios.get('https://vaultdrop-render.onrender.com/api/analytics/dashboard', {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         });
         setStats(res.data.stats);

@@ -10,7 +10,7 @@ function ShareFile() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const shareableLink = `http://localhost:5173/download/${fileId}`;
+  const shareableLink = `https://vaultdrop-render.onrender.com/download/${fileId}`;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,7 +20,7 @@ function ShareFile() {
 
     try {
       const res = await axios.post(
-        `http://localhost:5000/api/files/share/${fileId}`,
+        `https://vaultdrop-render.onrender.com/api/files/share/${fileId}`,
         { email },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );

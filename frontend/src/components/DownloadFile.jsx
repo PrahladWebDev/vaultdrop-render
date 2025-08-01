@@ -30,7 +30,7 @@ function DownloadFile() {
     const checkFile = async () => {
       setIsLoading(true);
       try {
-        const res = await axios.get(`http://localhost:5000/api/files/check/${fileId}`);
+        const res = await axios.get(`https://vaultdrop-render.onrender.com/api/files/check/${fileId}`);
         setRequiresOtp(res.data.requiresOtp);
         setHasPassword(res.data.hasPassword);
         setDescription(res.data.description);
@@ -63,7 +63,7 @@ function DownloadFile() {
     }
 
     try {
-      const res = await axios.post(`http://localhost:5000/api/files/download/${fileId}`, {
+      const res = await axios.post(`https://vaultdrop-render.onrender.com/api/files/download/${fileId}`, {
         password,
         otp,
       });
