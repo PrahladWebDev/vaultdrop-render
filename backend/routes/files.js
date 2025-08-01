@@ -29,7 +29,7 @@ router.post('/upload', verifyToken, upload.single('file'), async (req, res) => {
     });
 
     await file.save();
-    const shareableLink = `http://localhost:5173/download/${file._id}`;
+    const shareableLink = `https://vaultdrop-render.onrender.com/download/${file._id}`;
     res.json({ shareableLink, message: 'File uploaded successfully' });
   } catch (error) {
     console.error('Upload error:', error.message, error.stack);
