@@ -14,6 +14,7 @@ const fileSchema = new mongoose.Schema({
   otpExpires: { type: Date },
   requiresOtp: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
+  resourceType: { type: String, enum: ['raw', 'image', 'video'], default: 'raw' }, // ✅ NEW
 });
 
 export default mongoose.model('File', fileSchema);
