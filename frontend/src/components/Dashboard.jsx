@@ -10,8 +10,9 @@ import {
   FiArchive,
   FiMail,
   FiAlertTriangle,
+  FiTrash2,
 } from 'react-icons/fi';
-import { FaVideo } from 'react-icons/fa'; // Added for video files
+import { FaVideo } from 'react-icons/fa';
 
 function Dashboard() {
   const [stats, setStats] = useState({ totalUploads: 0, totalDownloads: 0, activeFiles: 0 });
@@ -39,18 +40,17 @@ function Dashboard() {
   }, []);
 
   const handleDelete = async (fileId) => {
-  if (!window.confirm('Are you sure you want to delete this file?')) return;
+    if (!window.confirm('Are you sure you want to delete this file?')) return;
 
-  try {
-    await axios.delete(`/api/files/delete/${fileId}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-    });
-    setFiles((prev) => prev.filter((file) => file._id !== fileId));
-  } catch (err) {
-    setError(err.response?.data?.message || 'Failed to delete file');
-  }
-};
-
+    try {
+      await axios.delete(`/api/files/delete/${fileId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      setFiles((prev) => prev.filter((file) => file._id !== fileId));
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete file');
+    }
+  };
 
   const truncateDescription = (text, maxLength = 100) => {
     if (!text || text.length <= maxLength) return text;
@@ -186,22 +186,22 @@ function Dashboard() {
                         https://vaultdrop-render.onrender.com/download/{file._id}
                       </a>
                     </p>
-                    <button
-                      onClick={() => navigate(`/share/${file._id}`)}
-                      className="mt-3 flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-300 transform hover:scale-105"
-                    >
-                      <FiMail className="w-5 h-5" />
-                      Share via Email
-                    </button>
-
-                    <button
-  onClick={() => handleDelete(file._id)}
-  className="mt-3 ml-3 flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition duration-300 transform hover:scale-105"
->
-  <FiAlertTriangle className="w-5 h-5" />
-  Delete
-</button>
-
+                    <div className="mt-3 flex gap-3">
+                      <button
+                        onClick={() => navigate(`/share/${file._id}`)}
+                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-300 transform hover:scale-105"
+                      >
+                        <FiMail className="w-5 h-5" />
+                        Share via Email
+                      </button>
+                      <button
+                        onClick={() => handleDelete(file._id)}
+                        className="flex items-center gap-2 bg-red-100 text-red-700 px-4 py-2 rounded-lg hover:bg-red-200 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition duration-300 transform hover:scale-105 border border-red-300 shadow-sm"
+                      >
+                        <FiTrash2 className="w-5 h-5" />
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -217,66 +217,64 @@ function Dashboard() {
           </p>
         )}
 
-        {/* Action Buttons */}
-        <div className="mt-8 flex justify-center space-x-4">
-          <button
-            onClick={() => navigate('/upload')}
-            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-300 transform hover:scale-105"
-          >
-            <FiUpload className="w-5 h-5" />
-            Upload New File
-          </button>
-        </div>
-      </div>
+        {/* Upload Button - Fixed Bottom Middle */}
+        <button
+          onClick={() => navigate('/upload')}
+          className="fixed bottom-6 left-1/2 transform -translate-x-1/2 flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-300 transform hover:scale-105 shadow-lg z-50"
+        >
+          <FiUpload className="w-5 h-5" />
+          Upload New File
+        </button>
 
-      {/* Tailwind Animation Classes and Watermark Styling */}
-      <style>{`
-        .animate-fade-in {
-          animation: fadeIn 0.5s ease-in;
-        }
-        .animate-slide-up {
-          animation: slideUp 0.5s ease-out;
-        }
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
+        {/* Tailwind Animation Classes and Watermark Styling */}
+        <style>{`
+          .animate-fade-in {
+            animation: fadeIn 0.5s ease-in;
           }
-          to {
-            opacity: 1;
+          .animate-slide-up {
+            animation: slideUp 0.5s ease-out;
           }
-        }
-        @keyframes slideUp {
-          from {
-            transform: translateY(20px);
-            opacity: 0;
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
           }
-          to {
-            transform: translateY(0);
-            opacity: 1;
+          @keyframes slideUp {
+            from {
+              transform: translateY(20px);
+              opacity: 0;
+            }
+            to {
+              transform: translateY(0);
+              opacity: 1;
+            }
           }
-        }
-        .file-card {
-          position: relative;
-          overflow: hidden;
-        }
-        .file-card::before {
-          content: var(--file-type);
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%) rotate(-45deg);
-          font-size: 3rem;
-          font-weight: bold;
-          color: rgba(0, 0, 0, 0.1);
-          pointer-events: none;
-          text-transform: uppercase;
-          z-index: 0;
-        }
-        .file-card > * {
-          position: relative;
-          z-index: 1;
-        }
-      `}</style>
+          .file-card {
+            position: relative;
+            overflow: hidden;
+          }
+          .file-card::before {
+            content: var(--file-type);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 3rem;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+            text-transform: uppercase;
+            z-index: 0;
+          }
+          .file-card > * {
+            position: relative;
+            z-index: 1;
+          }
+        `}</style>
+      </div>
     </div>
   );
 }
