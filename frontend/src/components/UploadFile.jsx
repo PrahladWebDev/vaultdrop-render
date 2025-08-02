@@ -21,6 +21,7 @@ function UploadFile() {
   const [error, setError] = useState('');
   const [shareableLink, setShareableLink] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGlobal, setIsGlobal] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -33,6 +34,7 @@ function UploadFile() {
     formData.append('expiresInHours', expiresInHours);
     formData.append('downloadLimit', downloadLimit);
     formData.append('description', description);
+    formData.append('isGlobal', isGlobal);
 
     try {
       const res = await axios.post('/api/files/upload', formData, {
@@ -126,6 +128,16 @@ function UploadFile() {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
               />
             </div>
+
+            <div className="flex items-center gap-2">
+  <input
+    type="checkbox"
+    checked={isGlobal}
+    onChange={(e) => setIsGlobal(e.target.checked)}
+    className="form-checkbox h-5 w-5 text-blue-600"
+  />
+  <label className="text-sm text-gray-600">Make file public (show in Explore)</label>
+</div>
 
             {/* Submit Button */}
             <button
