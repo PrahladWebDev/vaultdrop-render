@@ -9,6 +9,7 @@ import {
   FiLogOut,
   FiMenu,
   FiX,
+  FiSearch,
 } from 'react-icons/fi';
 import Home from './components/Home'
 import Login from './components/Login';
@@ -17,6 +18,8 @@ import UploadFile from './components/UploadFile';
 import ShareFile from './components/ShareFile';
 import DownloadFile from './components/DownloadFile';
 import Dashboard from './components/Dashboard';
+import Explore from './components/Explore';
+
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -66,6 +69,17 @@ function App() {
               >
                 <FiHome className="w-5 h-5" />
                 Home
+              </NavLink>
+              <NavLink
+                to="/explore"
+                className={({ isActive }) =>
+                  `flex items-center gap-2 text-gray-600 hover:text-blue-600 transition duration-300 transform hover:scale-105 ${
+                    isActive ? 'text-blue-600 font-semibold' : ''
+                  }`
+                }
+              >
+                <FiSearch className="w-5 h-5" />
+                Explore
               </NavLink>
               {!isLoggedIn && (
                 <>
@@ -160,6 +174,18 @@ function App() {
                   <FiHome className="w-5 h-5" />
                   Home
                 </NavLink>
+                <NavLink
+                  to="/explore"
+                  onClick={closeMenu}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 text-gray-600 hover:text-blue-600 transition duration-300 py-2 ${
+                      isActive ? 'text-blue-600 font-semibold' : ''
+                    }`
+                  }
+                >
+                  <FiSearch className="w-5 h-5" />
+                  Explore
+                </NavLink>
                 {!isLoggedIn && (
                   <>
                     <NavLink
@@ -239,6 +265,7 @@ function App() {
           <Route path="/download/:fileId" element={<DownloadFile />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/" element={<Home />} />
+          <Route path="/explore" element={<Explore />} />
         </Routes>
       </main>
 
