@@ -38,26 +38,52 @@ router.post('/upload', verifyToken, upload.single('file'), async (req, res) => {
 });
 
 // Share file via email with OTP
+// router.post('/share/:fileId', verifyToken, async (req, res) => {
+//   try {
+//     const { email } = req.body;
+//     const file = await File.findById(req.params.fileId);
+//     if (!file) return res.status(404).json({ message: 'File not found' });
+
+//     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+//     await sendOtpEmail(email, otp);
+
+//     file.otp = await bcrypt.hash(otp, 12);
+//     file.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+//     file.requiresOtp = true;
+//     await file.save();
+
+//     res.json({ message: 'OTP sent to email' });
+//   } catch (error) {
+//     console.error('Share error:', error.message, error.stack);
+//     res.status(500).json({ message: 'Failed to send OTP', error: error.message });
+//   }
+// });
+
+// Share file via email with OTP
 router.post('/share/:fileId', verifyToken, async (req, res) => {
   try {
     const { email } = req.body;
+
     const file = await File.findById(req.params.fileId);
     if (!file) return res.status(404).json({ message: 'File not found' });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    await sendOtpEmail(email, otp);
+
+    const shareableLink = `https://vaultdrop-render.onrender.com/download/${file._id}`;
+    await sendOtpEmail(email, otp, shareableLink);
 
     file.otp = await bcrypt.hash(otp, 12);
     file.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     file.requiresOtp = true;
     await file.save();
 
-    res.json({ message: 'OTP sent to email' });
+    res.json({ message: 'OTP sent to email successfully', link: shareableLink });
   } catch (error) {
     console.error('Share error:', error.message, error.stack);
     res.status(500).json({ message: 'Failed to send OTP', error: error.message });
   }
 });
+
 
 // Check if file requires OTP
 router.get('/check/:fileId', async (req, res) => {
