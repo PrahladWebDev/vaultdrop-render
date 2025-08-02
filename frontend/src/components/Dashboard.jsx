@@ -38,6 +38,20 @@ function Dashboard() {
     fetchData();
   }, []);
 
+  const handleDelete = async (fileId) => {
+  if (!window.confirm('Are you sure you want to delete this file?')) return;
+
+  try {
+    await axios.delete(`/api/files/delete/${fileId}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    });
+    setFiles((prev) => prev.filter((file) => file._id !== fileId));
+  } catch (err) {
+    setError(err.response?.data?.message || 'Failed to delete file');
+  }
+};
+
+
   const truncateDescription = (text, maxLength = 100) => {
     if (!text || text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
@@ -179,6 +193,15 @@ function Dashboard() {
                       <FiMail className="w-5 h-5" />
                       Share via Email
                     </button>
+
+                    <button
+  onClick={() => handleDelete(file._id)}
+  className="mt-3 ml-3 flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition duration-300 transform hover:scale-105"
+>
+  <FiAlertTriangle className="w-5 h-5" />
+  Delete
+</button>
+
                   </div>
                 );
               })}
