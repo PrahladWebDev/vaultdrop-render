@@ -286,6 +286,28 @@ router.post('/download/:fileId', async (req, res) => {
   }
 });
 
+// DELETE file by ID (from DB + Cloudinary)
+router.delete('/delete/:fileId', verifyToken, async (req, res) => {
+  try {
+    const file = await File.findById(req.params.fileId);
+    if (!file) return res.status(404).json({ message: 'File not found' });
+
+    if (file.userId.toString() !== req.user.userId) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    await cloudinary.uploader.destroy(file.publicId, {
+      resource_type: file.resourceType || 'raw',
+    });
+
+    await file.deleteOne();
+
+    res.json({ message: 'File deleted successfully' });
+  } catch (error) {
+    console.error('Delete error:', error.message);
+    res.status(500).json({ message: 'Failed to delete file', error: error.message });
+  }
+});
 
 
 export default router;
