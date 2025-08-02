@@ -71,6 +71,7 @@ function DownloadFile() {
       setFilename(res.data.filename);
       setDescription(res.data.description);
       setError('');
+      setDownloadCount((prevCount) => prevCount + 1);
     } catch (err) {
       console.error('Download error:', err.response?.data || err.message);
       setError(err.response?.data?.message || 'Download failed');
