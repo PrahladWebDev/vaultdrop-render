@@ -45,7 +45,7 @@ router.post('/upload', verifyToken, upload.single('file'), async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const { password, expiresInHours, downloadLimit, description } = req.body;
+    const { password, expiresInHours, downloadLimit, description, isGlobal } = req.body;
     let hashedPassword = password ? await bcrypt.hash(password, 12) : null;
 
     // Determine resource type from mimetype
@@ -63,6 +63,7 @@ router.post('/upload', verifyToken, upload.single('file'), async (req, res) => {
       expiresAt: new Date(Date.now() + (expiresInHours || 24) * 60 * 60 * 1000),
       downloadLimit: downloadLimit || 5,
       resourceType, // ✅ Save this
+      isGlobal: isGlobal || false, // ✅ Save global visibility
     });
 
     await file.save();
@@ -306,6 +307,19 @@ router.delete('/delete/:fileId', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Delete error:', error.message);
     res.status(500).json({ message: 'Failed to delete file', error: error.message });
+  }
+});
+
+router.get('/explore', async (req, res) => {
+  try {
+    const files = await File.find({ isGlobal: true, expiresAt: { $gt: new Date() } })
+      .populate('userId', 'email') // Only fetch email
+      .sort({ createdAt: -1 }); // Optional: newest first
+
+    res.json(files);
+  } catch (error) {
+    console.error('Explore error:', error.message);
+    res.status(500).json({ message: 'Failed to fetch public files' });
   }
 });
 
