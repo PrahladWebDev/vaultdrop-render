@@ -15,6 +15,7 @@ const fileSchema = new mongoose.Schema({
   requiresOtp: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
   resourceType: { type: String, enum: ['raw', 'image', 'video'], default: 'raw' }, // ✅ NEW
+  isGlobal: { type: Boolean, default: false }, // ✅ New field
 });
 
 export default mongoose.model('File', fileSchema);
