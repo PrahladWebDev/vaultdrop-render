@@ -9,7 +9,7 @@ function Explore() {
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/files/explore`);
+        const res = await axios.get(`/api/files/explore`);
         setFiles(res.data);
       } catch (err) {
         setError('Failed to load public files');
