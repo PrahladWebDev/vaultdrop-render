@@ -80,16 +80,54 @@ function DownloadFile() {
     }
   };
 
-  const handleDownload = () => {
-    if (url && filename) {
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+  // const handleDownload = () => {
+  //   if (url && filename) {
+  //     const link = document.createElement('a');
+  //     link.href = url;
+  //     link.download = filename;
+  //     document.body.appendChild(link);
+  //     link.click();
+  //     document.body.removeChild(link);
+  //   }
+  // };
+
+  
+
+const handleDownload = async () => {
+  if (url && filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    const isRaw = ['pdf', 'txt', 'doc', 'docx', 'zip', 'rar'].includes(ext);
+
+    if (isRaw) {
+      try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        window.URL.revokeObjectURL(downloadUrl);
+      } catch (error) {
+        console.error('Download error:', error);
+        setError('Failed to download file.');
+      }
+    } else {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
     }
-  };
+  }
+};
+
+
 
   const getFileIcon = (fileName) => {
     if (!fileName) return <FiFile className="w-6 h-6" />;
