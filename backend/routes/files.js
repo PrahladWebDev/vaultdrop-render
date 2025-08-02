@@ -5,6 +5,8 @@ import File from '../models/File.js';
 import cloudinary from '../utils/cloudinary.js';
 import { sendOtpEmail } from '../utils/email.js';
 import bcrypt from 'bcryptjs';
+import axios from 'axios';
+
 
 const router = express.Router();
 
