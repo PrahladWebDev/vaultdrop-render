@@ -68,7 +68,7 @@ router.post('/share/:fileId', verifyToken, async (req, res) => {
     file.requiresOtp = true;
     await file.save();
 
-    res.json({ message: 'OTP sent to email successfully', link: shareableLink });
+    res.json({ message: 'OTP and Link sent to email successfully', link: shareableLink });
   } catch (error) {
     console.error('Share error:', error.message, error.stack);
     res.status(500).json({ message: 'Failed to send OTP', error: error.message });
