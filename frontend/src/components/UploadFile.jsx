@@ -28,6 +28,29 @@ function UploadFile() {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+
+    // File size validation based on file type
+    if (file) {
+      const fileSizeMB = file.size / (1024 * 1024); // Convert bytes to MB
+      const fileType = file.type.split('/')[0]; // 'image', 'video', or 'application' for raw/ZIP
+
+      if (fileType === 'image' && fileSizeMB > 10) {
+        setError('Image files must be less than 10 MB.');
+        setIsLoading(false);
+        return;
+      }
+      if (fileType === 'video' && fileSizeMB > 100) {
+        setError('Video files must be less than 100 MB.');
+        setIsLoading(false);
+        return;
+      }
+      if (fileType === 'application' && fileSizeMB > 10) {
+        setError('Raw files (e.g., ZIP) must be less than 10 MB.');
+        setIsLoading(false);
+        return;
+      }
+    }
+
     const formData = new FormData();
     formData.append('file', file);
     formData.append('password', password);
@@ -75,6 +98,9 @@ function UploadFile() {
                 required
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-blue-100 file:text-blue-600 hover:file:bg-blue-200"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Max size: 10 MB (Images, Raw/ZIP), 100 MB (Videos)
+              </p>
             </div>
 
             {/* Description Textarea */}
@@ -130,14 +156,14 @@ function UploadFile() {
             </div>
 
             <div className="flex items-center gap-2">
-  <input
-    type="checkbox"
-    checked={isGlobal}
-    onChange={(e) => setIsGlobal(e.target.checked)}
-    className="form-checkbox h-5 w-5 text-blue-600"
-  />
-  <label className="text-sm text-gray-600">Make file public (show in Explore)</label>
-</div>
+              <input
+                type="checkbox"
+                checked={isGlobal}
+                onChange={(e) => setIsGlobal(e.target.checked)}
+                className="form-checkbox h-5 w-5 text-blue-600"
+              />
+              <label className="text-sm text-gray-600">Make file public (show in Explore)</label>
+            </div>
 
             {/* Submit Button */}
             <button
