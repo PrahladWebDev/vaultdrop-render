@@ -65,11 +65,6 @@ function UploadFile() {
       });
       setShareableLink(res.data.shareableLink);
     } catch (err) {
-      if (err.response?.status === 401) {
-        localStorage.removeItem('token'); // Clear expired token
-        navigate('/login', { state: { message: 'Your session has expired. Please log in again.' } });
-        return;
-      }
       setError(err.response?.data?.message || 'File upload failed');
     } finally {
       setIsLoading(false);
