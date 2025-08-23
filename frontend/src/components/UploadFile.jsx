@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react'; // Added useEffect
+if token expirened then show toast and redirect to login apge
+import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import {
   FiUpload,
   FiLock,
@@ -13,7 +12,6 @@ import {
   FiAlertTriangle,
   FiArrowLeft,
 } from 'react-icons/fi';
-import { ToastContainer } from 'react-toastify';
 
 function UploadFile() {
   const [file, setFile] = useState(null);
@@ -27,54 +25,15 @@ function UploadFile() {
   const [isGlobal, setIsGlobal] = useState(false);
   const navigate = useNavigate();
 
-  // Validate token on component mount
-  useEffect(() => {
-    const validateToken = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        toast.error('No session found. Please log in.', {
-          position: 'top-right',
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-        setTimeout(() => navigate('/login'), 3000);
-        return;
-      }
-
-      try {
-        // Assuming an endpoint to verify token
-        await axios.get('/api/auth/verify-token', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-      } catch (err) {
-        toast.error('Session expired. Please log in again.', {
-          position: 'top-right',
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-        localStorage.removeItem('token');
-        setTimeout(() => navigate('/login'), 3000);
-      }
-    };
-
-    validateToken();
-  }, [navigate]); // Run once on mount, with navigate as dependency
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // File size validation
+    // File size validation based on file type
     if (file) {
-      const fileSizeMB = file.size / (1024 * 1024);
-      const fileType = file.type.split('/')[0];
+      const fileSizeMB = file.size / (1024 * 1024); // Convert bytes to MB
+      const fileType = file.type.split('/')[0]; // 'image', 'video', or 'application' for raw/ZIP
 
       if (fileType === 'image' && fileSizeMB > 10) {
         setError('Image files must be less than 10 MB.');
@@ -107,20 +66,7 @@ function UploadFile() {
       });
       setShareableLink(res.data.shareableLink);
     } catch (err) {
-      if (err.response?.status === 401) {
-        toast.error('Session expired. Please log in again.', {
-          position: 'top-right',
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-        localStorage.removeItem('token');
-        setTimeout(() => navigate('/login'), 3000);
-      } else {
-        setError(err.response?.data?.message || 'File upload failed');
-      }
+      setError(err.response?.data?.message || 'File upload failed');
     } finally {
       setIsLoading(false);
     }
@@ -134,6 +80,7 @@ function UploadFile() {
           <h2 className="text-3xl font-bold text-blue-700">Upload File</h2>
         </div>
 
+        {/* Loading State */}
         {isLoading ? (
           <div className="animate-pulse space-y-4">
             {[...Array(5)].map((_, i) => (
@@ -143,6 +90,7 @@ function UploadFile() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* File Input */}
             <div className="relative">
               <FiFileText className="absolute top-3 left-3 w-5 h-5 text-gray-400" />
               <input
@@ -156,6 +104,7 @@ function UploadFile() {
               </p>
             </div>
 
+            {/* Description Textarea */}
             <div className="relative">
               <FiFileText className="absolute top-3 left-3 w-5 h-5 text-gray-400" />
               <textarea
@@ -167,6 +116,7 @@ function UploadFile() {
               />
             </div>
 
+            {/* Password Input */}
             <div className="relative">
               <FiLock className="absolute top-3 left-3 w-5 h-5 text-gray-400" />
               <input
@@ -178,6 +128,7 @@ function UploadFile() {
               />
             </div>
 
+            {/* Expiration Input */}
             <div className="relative">
               <FiClock className="absolute top-3 left-3 w-5 h-5 text-gray-400" />
               <input
@@ -191,6 +142,7 @@ function UploadFile() {
               />
             </div>
 
+            {/* Download Limit Input */}
             <div className="relative">
               <FiDownload className="absolute top-3 left-3 w-5 h-5 text-gray-400" />
               <input
@@ -214,6 +166,7 @@ function UploadFile() {
               <label className="text-sm text-gray-600">Make file public (show in Explore)</label>
             </div>
 
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -227,6 +180,7 @@ function UploadFile() {
           </form>
         )}
 
+        {/* Error Message */}
         {error && (
           <p className="text-red-500 text-center animate-pulse flex items-center justify-center gap-2">
             <FiAlertTriangle className="w-5 h-5" />
@@ -234,6 +188,7 @@ function UploadFile() {
           </p>
         )}
 
+        {/* Shareable Link */}
         {shareableLink && (
           <div className="space-y-4 text-center animate-fade-in">
             <p className="text-gray-600 flex items-center justify-center gap-2">
@@ -253,6 +208,7 @@ function UploadFile() {
           </div>
         )}
 
+        {/* Back to Dashboard */}
         <p className="text-center text-gray-600">
           <a
             href="/dashboard"
@@ -264,8 +220,7 @@ function UploadFile() {
         </p>
       </div>
 
-      <ToastContainer />
-
+      {/* Tailwind Animation Classes */}
       <style>{`
         .animate-fade-in {
           animation: fadeIn 0.5s ease-in;
