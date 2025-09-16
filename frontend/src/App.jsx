@@ -19,6 +19,8 @@ import ShareFile from './components/ShareFile';
 import DownloadFile from './components/DownloadFile';
 import Dashboard from './components/Dashboard';
 import Explore from './components/Explore';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 
 // Function to check if token is expired (assuming JWT)
 const isTokenExpired = (token) => {
@@ -38,7 +40,6 @@ const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   const isLoggedIn = !!token && !isTokenExpired(token);
   const location = useLocation(); // Get current location
-
   if (!isLoggedIn) {
     return (
       <Navigate
@@ -290,6 +291,8 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route
             path="/upload"
             element={
