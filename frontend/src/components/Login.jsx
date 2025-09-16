@@ -29,13 +29,16 @@ function Login() {
       localStorage.setItem('token', res.data.token);
       setError(''); // Clear any previous errors
       setRedirectMessage(''); // Clear redirect message on successful login
-
       // Redirect to the original URL or default to /dashboard
       const from = location.state?.from || '/dashboard';
       navigate(from, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'An error occurred. Please try again.');
     }
+  };
+
+  const handleForgotPassword = () => {
+    navigate('/forgot-password');
   };
 
   return (
@@ -74,6 +77,15 @@ function Login() {
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
             />
+          </div>
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              className="text-blue-600 hover:underline hover:text-blue-800 transition duration-200"
+            >
+              Forgot Password?
+            </button>
           </div>
           <button
             type="submit"
