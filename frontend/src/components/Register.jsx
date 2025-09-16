@@ -6,16 +6,18 @@ function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const res = await axios.post('/api/auth/register', { email, password });
-      localStorage.setItem('token', res.data.token);
-      navigate('/dashboard');
+      setSuccess(res.data.message);
+      setError('');
     } catch (err) {
       setError(err.response.data.message);
+      setSuccess('');
     }
   };
 
@@ -23,6 +25,16 @@ function Register() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 space-y-6 transform transition-all duration-300 hover:shadow-xl">
         <h2 className="text-2xl font-bold text-center text-blue-600">Register for VaultDrop</h2>
+        {success && (
+          <p className="text-green-500 bg-green-100 p-3 rounded-md text-center animate-fade-in">
+            {success}
+          </p>
+        )}
+        {error && (
+          <p className="text-red-500 bg-red-100 p-3 rounded-md text-center animate-pulse">
+            {error}
+          </p>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <input
@@ -51,11 +63,6 @@ function Register() {
             Register
           </button>
         </form>
-        {error && (
-          <p className="text-red-500 text-center animate-pulse">
-            {error}
-          </p>
-        )}
         <p className="text-center text-gray-600">
           Already have an account?{' '}
           <a
