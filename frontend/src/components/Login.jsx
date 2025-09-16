@@ -10,9 +10,8 @@ function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check for redirect message from location.state or localStorage
+  // Check for redirect message and from URL from location.state
   useEffect(() => {
-    // Get message from location.state (preferred)
     const message = location.state?.message || localStorage.getItem('loginMessage') || '';
     setRedirectMessage(message);
     console.log('Location state:', location.state);
@@ -30,7 +29,10 @@ function Login() {
       localStorage.setItem('token', res.data.token);
       setError(''); // Clear any previous errors
       setRedirectMessage(''); // Clear redirect message on successful login
-      navigate('/dashboard');
+
+      // Redirect to the original URL or default to /dashboard
+      const from = location.state?.from || '/dashboard';
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'An error occurred. Please try again.');
     }
