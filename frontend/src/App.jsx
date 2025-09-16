@@ -37,17 +37,20 @@ const isTokenExpired = (token) => {
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   const isLoggedIn = !!token && !isTokenExpired(token);
+  const location = useLocation(); // Get current location
 
   if (!isLoggedIn) {
     return (
       <Navigate
         to="/login"
-        state={{ message: token ? 'Your session has expired. Please log in again.' : 'Please log in to access this page.' }}
+        state={{
+          message: token ? 'Your session has expired. Please log in again.' : 'Please log in to access this page.',
+          from: location.pathname + location.search, // Pass the current URL
+        }}
         replace
       />
     );
   }
-
   return children;
 };
 
@@ -87,7 +90,6 @@ function App() {
                 VaultDrop
               </NavLink>
             </div>
-
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-6">
               <NavLink
@@ -172,7 +174,6 @@ function App() {
                 </>
               )}
             </nav>
-
             {/* Mobile Hamburger Button */}
             <div className="md:hidden">
               <button
@@ -188,7 +189,6 @@ function App() {
               </button>
             </div>
           </div>
-
           {/* Mobile Navigation */}
           {isMenuOpen && (
             <nav className="md:hidden bg-white shadow-md animate-slide-down">
@@ -285,7 +285,6 @@ function App() {
           )}
         </div>
       </header>
-
       {/* Main Content */}
       <main className="flex-grow">
         <Routes>
@@ -313,7 +312,6 @@ function App() {
           <Route path="/explore" element={<Explore />} />
         </Routes>
       </main>
-
       {/* Tailwind Animation Classes */}
       <style>{`
         .animate-fade-in {
