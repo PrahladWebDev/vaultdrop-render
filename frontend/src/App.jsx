@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Routes, Route, NavLink, useNavigate } from 'react-router-dom';
+import { Routes, Route, NavLink, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import {
   FiGrid,
   FiHome,
@@ -11,7 +11,7 @@ import {
   FiX,
   FiSearch,
 } from 'react-icons/fi';
-import Home from './components/Home'
+import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
 import UploadFile from './components/UploadFile';
@@ -20,11 +20,42 @@ import DownloadFile from './components/DownloadFile';
 import Dashboard from './components/Dashboard';
 import Explore from './components/Explore';
 
+// Function to check if token is expired (assuming JWT)
+const isTokenExpired = (token) => {
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const expiry = payload.exp * 1000; // Convert to milliseconds
+    return Date.now() >= expiry;
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return true; // Treat invalid tokens as expired
+  }
+};
+
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  const isLoggedIn = !!token && !isTokenExpired(token);
+
+  if (!isLoggedIn) {
+    return (
+      <Navigate
+        to="/login"
+        state={{ message: token ? 'Your session has expired. Please log in again.' : 'Please log in to access this page.' }}
+        replace
+      />
+    );
+  }
+
+  return children;
+};
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const isLoggedIn = !!localStorage.getItem('token');
+  const token = localStorage.getItem('token');
+  const isLoggedIn = !!token && !isTokenExpired(token);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -36,7 +67,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    navigate('/login');
+    navigate('/login', { state: { message: 'You have been logged out.' } });
     closeMenu();
   };
 
@@ -260,10 +291,24 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/upload" element={<UploadFile />} />
+          <Route
+            path="/upload"
+            element={
+              <ProtectedRoute>
+                <UploadFile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/share/:fileId" element={<ShareFile />} />
           <Route path="/download/:fileId" element={<DownloadFile />} />
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/" element={<Home />} />
           <Route path="/explore" element={<Explore />} />
         </Routes>
