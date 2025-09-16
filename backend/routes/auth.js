@@ -23,12 +23,64 @@ router.post('/register', async (req, res) => {
     const { email, password } = req.body;
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: 'User already exists' });
-    const user = new User({ email, password });
+
+    // Generate verification token
+    const verificationToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1d' });
+
+    const user = new User({ email, password, verificationToken });
     await user.save();
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.status(201).json({ token });
+
+    // Send verification email
+    const verificationUrl = `http://${req.headers.host}/api/auth/verify-email/${verificationToken}`;
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'VaultDrop Email Verification',
+      html: `
+        <h2>Email Verification</h2>
+        <p>Thank you for registering with VaultDrop!</p>
+        <p>Please click the following link to verify your email:</p>
+        <a href="${verificationUrl}" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+          Verify Email
+        </a>
+        <p>This link will expire in 24 hours.</p>
+        <p>If you did not create an account, please ignore this email.</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.status(201).json({ message: 'Registration successful. Please check your email to verify your account.' });
   } catch (error) {
     res.status(500).json({ message: 'Registration failed' });
+  }
+});
+
+// Email verification route
+router.get('/verify-email/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      return res.status(400).json({ message: 'Invalid or expired verification token' });
+    }
+
+    const user = await User.findOne({ email: decoded.email, verificationToken: token });
+    if (!user) return res.status(400).json({ message: 'Invalid verification token' });
+
+    // Mark email as verified
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    await user.save();
+
+    // Generate JWT for auto-login after verification
+    const authToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+
+    // Redirect to frontend login page with token and message
+    res.redirect(`/login?token=${authToken}&message=Email verified successfully. Please log in.`);
+  } catch (error) {
+    res.status(500).json({ message: 'Error verifying email' });
   }
 });
 
@@ -38,8 +90,15 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+
+    // Check if email is verified
+    if (!user.isVerified) {
+      return res.status(403).json({ message: 'Please verify your email before logging in.' });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.json({ token });
   } catch (error) {
@@ -56,7 +115,7 @@ router.post('/forgot-password', async (req, res) => {
 
     // Generate reset token
     const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    
+
     // Store reset token in user document
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
