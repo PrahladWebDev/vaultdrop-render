@@ -3,8 +3,8 @@ import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('guest@gmail.com');
+  const [password, setPassword] = useState('guest1234');
   const [error, setError] = useState('');
   const [redirectMessage, setRedirectMessage] = useState('');
   const navigate = useNavigate();
@@ -15,14 +15,11 @@ function Login() {
     const query = new URLSearchParams(location.search);
     const token = query.get('token');
     const message = query.get('message') || location.state?.message || localStorage.getItem('loginMessage') || '';
-
     if (token) {
       localStorage.setItem('token', token);
       navigate('/dashboard', { replace: true });
     }
-
     setRedirectMessage(message);
-
     // Clear localStorage message after displaying
     if (localStorage.getItem('loginMessage')) {
       localStorage.removeItem('loginMessage');
@@ -51,6 +48,9 @@ function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 space-y-6 transform transition-all duration-300 hover:shadow-xl">
         <h2 className="text-2xl font-bold text-center text-blue-600">Login to VaultDrop</h2>
+        <p className="text-green-600 bg-green-100 p-3 rounded-md text-center">
+          Use guest credentials: Email: guest@gmail.com, Password: guest1234
+        </p>
         {redirectMessage && (
           <p className="text-yellow-600 bg-yellow-100 p-3 rounded-md text-center animate-fade-in">
             {redirectMessage}
