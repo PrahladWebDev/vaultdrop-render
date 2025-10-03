@@ -1,13 +1,23 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import User from '../models/User.js';
 
 const router = express.Router();
-const resend = new Resend(process.env.RESEND_API_KEY);
 
-// -------------------- REGISTER ROUTE --------------------
+// Setup Nodemailer transporter
+const transporter = nodemailer.createTransport({
+  host: 'mail.webdevprahlad.site',
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+// Register route
 router.post('/register', async (req, res) => {
   try {
     console.log("📩 Incoming Register Request:", req.body);
@@ -21,9 +31,6 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     // Generate verification token
     console.log("🔑 Generating verification token...");
     const verificationToken = jwt.sign(
@@ -34,16 +41,14 @@ router.post('/register', async (req, res) => {
 
     // Save user
     console.log("💾 Saving user to DB...");
-    const user = new User({ email, password: hashedPassword, verificationToken });
+    const user = new User({ email, password, verificationToken });
     await user.save();
     console.log("✅ User saved:", user._id);
 
-    // Build verification link
+    // Build email
     const verificationUrl = `http://${req.headers.host}/api/auth/verify-email/${verificationToken}`;
-
-    console.log("📧 Sending verification email to:", email);
-    const { data, error } = await resend.emails.send({
-      from: 'VaultDrop <onboarding@resend.dev>', // can use verified domain later
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
       to: email,
       subject: 'VaultDrop Email Verification',
       html: `
@@ -56,14 +61,12 @@ router.post('/register', async (req, res) => {
         <p>This link will expire in 24 hours.</p>
         <p>If you did not create an account, please ignore this email.</p>
       `,
-    });
+    };
 
-    if (error) {
-      console.error("❌ Email send error:", error);
-      return res.status(500).json({ message: 'Failed to send verification email', error });
-    }
+    console.log("📧 Sending verification email to:", email);
+    await transporter.sendMail(mailOptions);
+    console.log("✅ Email sent successfully");
 
-    console.log("✅ Email sent successfully:", data);
     res.status(201).json({ message: 'Registration successful. Please check your email to verify your account.' });
 
   } catch (error) {
@@ -72,7 +75,8 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// -------------------- EMAIL VERIFICATION ROUTE --------------------
+
+// Email verification route
 router.get('/verify-email/:token', async (req, res) => {
   try {
     const { token } = req.params;
@@ -97,18 +101,18 @@ router.get('/verify-email/:token', async (req, res) => {
     // Redirect to frontend login page with token and message
     res.redirect(`/login?token=${authToken}&message=Email verified successfully. Please log in.`);
   } catch (error) {
-    console.error("❌ Email Verification Error:", error);
-    res.status(500).json({ message: 'Error verifying email', error: error.message });
+    res.status(500).json({ message: 'Error verifying email' });
   }
 });
 
-// -------------------- LOGIN ROUTE --------------------
+// Login route
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
+    // Check if email is verified
     if (!user.isVerified) {
       return res.status(403).json({ message: 'Please verify your email before logging in.' });
     }
@@ -119,12 +123,11 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.json({ token });
   } catch (error) {
-    console.error("❌ Login Error:", error);
-    res.status(500).json({ message: 'Login failed', error: error.message });
+    res.status(500).json({ message: 'Login failed' });
   }
 });
 
-// -------------------- FORGOT PASSWORD ROUTE --------------------
+// Forgot password route
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -139,11 +142,10 @@ router.post('/forgot-password', async (req, res) => {
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
     await user.save();
 
+    // Send reset email
     const resetUrl = `http://${req.headers.host}/reset-password/${resetToken}`;
-
-    console.log("📧 Sending password reset email to:", email);
-    const { data, error } = await resend.emails.send({
-      from: 'VaultDrop <onboarding@resend.dev>',
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
       to: email,
       subject: 'VaultDrop Password Reset',
       html: `
@@ -156,28 +158,22 @@ router.post('/forgot-password', async (req, res) => {
         <p>This link will expire in 1 hour.</p>
         <p>If you did not request a password reset, please ignore this email.</p>
       `,
-    });
+    };
 
-    if (error) {
-      console.error("❌ Password reset email send error:", error);
-      return res.status(500).json({ message: 'Failed to send password reset email', error });
-    }
-
-    console.log("✅ Password reset email sent:", data);
+    await transporter.sendMail(mailOptions);
     res.json({ message: 'Password reset email sent' });
-
   } catch (error) {
-    console.error("❌ Forgot Password Error:", error);
-    res.status(500).json({ message: 'Error sending reset email', error: error.message });
+    res.status(500).json({ message: 'Error sending reset email' });
   }
 });
 
-// -------------------- RESET PASSWORD ROUTE --------------------
+// Reset password route
 router.post('/reset-password/:token', async (req, res) => {
   try {
     const { token } = req.params;
     const { password } = req.body;
 
+    // Verify token
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -194,15 +190,14 @@ router.post('/reset-password/:token', async (req, res) => {
     if (!user) return res.status(400).json({ message: 'Invalid or expired reset token' });
 
     // Update password
-    user.password = await bcrypt.hash(password, 10);
+    user.password = password;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     await user.save();
 
     res.json({ message: 'Password reset successful' });
   } catch (error) {
-    console.error("❌ Reset Password Error:", error);
-    res.status(500).json({ message: 'Error resetting password', error: error.message });
+    res.status(500).json({ message: 'Error resetting password' });
   }
 });
 
