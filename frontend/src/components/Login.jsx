@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
-
 function Login() {
   const [email, setEmail] = useState('guest@gmail.com');
   const [password, setPassword] = useState('guest1234');
@@ -9,7 +8,6 @@ function Login() {
   const [redirectMessage, setRedirectMessage] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
-
   // Handle redirect message and token from verification
   useEffect(() => {
     const query = new URLSearchParams(location.search);
@@ -25,7 +23,6 @@ function Login() {
       localStorage.removeItem('loginMessage');
     }
   }, [location, navigate]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -39,18 +36,13 @@ function Login() {
       setError(err.response?.data?.message || 'An error occurred. Please try again.');
     }
   };
-
   const handleForgotPassword = () => {
     navigate('/forgot-password');
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 space-y-6 transform transition-all duration-300 hover:shadow-xl">
         <h2 className="text-2xl font-bold text-center text-blue-600">Login to VaultDrop</h2>
-        <p className="text-green-600 bg-green-100 p-3 rounded-md text-center">
-          Use guest credentials: Email: guest@gmail.com, Password: guest1234
-        </p>
         {redirectMessage && (
           <p className="text-yellow-600 bg-yellow-100 p-3 rounded-md text-center animate-fade-in">
             {redirectMessage}
@@ -111,5 +103,4 @@ function Login() {
     </div>
   );
 }
-
 export default Login;
