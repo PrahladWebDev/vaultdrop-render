@@ -20,17 +20,32 @@ const transporter = nodemailer.createTransport({
 // Register route
 router.post('/register', async (req, res) => {
   try {
+    console.log("📩 Incoming Register Request:", req.body);
+
     const { email, password } = req.body;
+
+    // Check if user exists
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: 'User already exists' });
+    if (existingUser) {
+      console.log("⚠️ User already exists:", email);
+      return res.status(400).json({ message: 'User already exists' });
+    }
 
     // Generate verification token
-    const verificationToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    console.log("🔑 Generating verification token...");
+    const verificationToken = jwt.sign(
+      { email },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
 
+    // Save user
+    console.log("💾 Saving user to DB...");
     const user = new User({ email, password, verificationToken });
     await user.save();
+    console.log("✅ User saved:", user._id);
 
-    // Send verification email
+    // Build email
     const verificationUrl = `http://${req.headers.host}/api/auth/verify-email/${verificationToken}`;
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -48,12 +63,18 @@ router.post('/register', async (req, res) => {
       `,
     };
 
+    console.log("📧 Sending verification email to:", email);
     await transporter.sendMail(mailOptions);
+    console.log("✅ Email sent successfully");
+
     res.status(201).json({ message: 'Registration successful. Please check your email to verify your account.' });
+
   } catch (error) {
-    res.status(500).json({ message: 'Registration failed' });
+    console.error("❌ Registration Error:", error);
+    res.status(500).json({ message: 'Registration failed', error: error.message });
   }
 });
+
 
 // Email verification route
 router.get('/verify-email/:token', async (req, res) => {
