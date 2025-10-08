@@ -13,7 +13,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 async function sendEmail({ to, subject, html }) {
   try {
     const response = await resend.emails.send({
-      from: VaultDrop <no-reply@webdevprahlad.site>, // Example: "VaultDrop <no-reply@yourdomain.com>"
+      from: "VaultDrop <no-reply@webdevprahlad.site>", // Example: "VaultDrop <no-reply@yourdomain.com>"
       to,
       subject,
       html,
